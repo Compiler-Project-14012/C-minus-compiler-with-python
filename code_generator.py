@@ -74,3 +74,10 @@ class CodeGenerator:
     def jpf(self, lookahead):
         jump_to = self.stack.pop()
         condition = self.stack.pop()
+        self.generated_code[jump_to] = f"(JPF, {condition}, {self.last_index + 1}, )"
+        self.save_index(lookahead)
+
+    def jump(self, lookahead):
+        destination = self.stack.pop()
+        self.generated_code[destination] = f"(JP, {self.last_index}, , )"
+
