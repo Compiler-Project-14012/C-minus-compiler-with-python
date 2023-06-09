@@ -32,7 +32,7 @@ Expression-stmt -> Expression ; #pop_extras     #Checked
 Expression-stmt -> break ; #save_break_address  #Checked
 Expression-stmt -> ;
 Selection-stmt -> if ( Expression ) #save_index Statement else #jpf Statement #jump     #Checked
-Iteration-stmt -> while #label ( Expression ) #new_break #save Statement #while_jumps #end_break
+Iteration-stmt -> while #l ( Expression ) #new_break #save Statement #while_jumps #end_break
 Return-stmt -> return Return-stmt-prime #save_return
 Return-stmt-prime -> #push_index ;
 Return-stmt-prime -> Expression ;
@@ -75,7 +75,7 @@ Signed-factor-zegond -> - Factor #negate_factor
 Signed-factor-zegond -> Factor-zegond
 Factor -> ( Expression )
 Factor -> #push_id_address ID Var-call-prime
-Factor -> #push_num NUM
+Factor -> #save_array_size NUM
 Var-call-prime -> ( Args #implicit_output ) #call_function
 Var-call-prime -> Var-prime
 Var-prime -> [ Expression ] #array_index
@@ -83,7 +83,7 @@ Var-prime -> EPSILON
 Factor-prime -> ( Args #implicit_output ) #call_function
 Factor-prime -> EPSILON
 Factor-zegond -> ( Expression )
-Factor-zegond -> #push_num NUM
+Factor-zegond -> #save_array_size NUM
 Args -> Arg-list
 Args -> EPSILON
 Arg-list -> Expression Arg-list-prime
