@@ -11,9 +11,11 @@ symbol_table = {}
 
 
 def put_keywords_in_table():
-    symbol_table = {}
+    symbols = []
     for key in key_words:
-        symbol_table[len(symbol_table) + 1] = key
+        symbols.append(key)
+    symbol_table["keywords"] = symbols
+    symbol_table["ids"] = []
     return symbol_table
 
 
@@ -179,7 +181,7 @@ def get_next_token(text):
 
 
 def get_token():
-    symbol_table = put_keywords_in_table()
+    put_keywords_in_table()
     i = open("input.txt", "r")
     # e = open("lexical_errors.txt", "w")
     # t = open("tokens.txt", "w")
@@ -192,11 +194,11 @@ def get_token():
     start_index, end_index, token_type, error = get_next_token(text)
     lexim = text[start_index:end_index]
     is_error = True if token_type[0:5] == "ERROR" else False
-    if not is_error:
-        if not ["WHITESPACE", "COMMENT"].__contains__(token_type):
-            if token_type == "ID":
-                if lexim not in symbol_table.values():
-                    symbol_table[len(symbol_table) + 1] = lexim
+    # if not is_error:
+    #     if not ["WHITESPACE", "COMMENT"].__contains__(token_type):
+    #         if token_type == "ID":
+    #             if lexim not in symbol_table.values():
+    #                 symbol_table[len(symbol_table) + 1] = lexim
 
     # else:
     #     if token_type[6:] == 'Unclosed comment':
