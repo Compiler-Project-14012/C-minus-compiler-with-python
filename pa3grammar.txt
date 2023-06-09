@@ -32,7 +32,7 @@ Expression-stmt -> Expression ; #pop_extras     #Checked
 Expression-stmt -> break ; #save_break_address  #Checked
 Expression-stmt -> ;
 Selection-stmt -> if ( Expression ) #save_index Statement else #jpf Statement #jump     #Checked
-Iteration-stmt -> while #l ( Expression ) #new_break #save Statement #while_jumps #end_break
+Iteration-stmt -> while #label ( Expression ) #new_break #save Statement #while_jumps #end_break
 Return-stmt -> return Return-stmt-prime #save_return
 Return-stmt-prime -> #push_index ;
 Return-stmt-prime -> Expression ;
