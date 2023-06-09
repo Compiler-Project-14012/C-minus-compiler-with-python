@@ -11,6 +11,7 @@ class CodeGenerator:
         self.generated_code = dict()
         self.last_index = 0
         self.break_states = list()
+        self.return_values = []
 
     def save_type(self, lookahead):
         self.last_type = lookahead
@@ -80,5 +81,22 @@ class CodeGenerator:
     def jump(self, lookahead):
         destination = self.stack.pop()
         self.generated_code[destination] = f"(JP, {self.last_index}, , )"
+
+    def add_to_breaks(self, lookahead):
+        self.break_states.append("new-break")
+
+    def until_jump(self, lookahead):
+        self.generated_code[self.last_index] = f'(JPF, {self.stack.pop()}, {self.last_index + 2}, )'
+        self.last_index += 1
+        self.generated_code[self.last_index] = f'(JP, {self.stack.pop()}, , )'
+        self.last_index += 1
+        last_break = 0
+        for index, i in enumerate(reversed(self.break_states)):
+            if i == "new-break":
+                last_break = index
+        for i in self.break_states[last_break + 1:]:
+            self.generated_code[i] = f"(JP, {self.last_index}, , )"
+
+        self.break_states = self.break_states[:last_break]
 
 

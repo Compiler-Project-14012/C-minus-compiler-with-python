@@ -32,11 +32,11 @@ Expression-stmt -> Expression ; #pop_extras     #Checked
 Expression-stmt -> break ; #save_break_address  #Checked
 Expression-stmt -> ;
 Selection-stmt -> if ( Expression ) #save_index Statement else #jpf Statement #jump     #Checked
-Iteration-stmt -> while #label ( Expression ) #new_break #save Statement #while_jumps #end_break
+Iteration-stmt -> repeat #add_to_breaks #save_index Statement until  ( Expression ) #until_jump #Checked
 Return-stmt -> return Return-stmt-prime #save_return
 Return-stmt-prime -> #push_index ;
 Return-stmt-prime -> Expression ;
-For-stmt -> for #get_temp_save #push_id_address ID = Vars #new_break Statement #for_statement #end_break
+For-stmt -> for #get_temp_save #push_id_address ID = Vars #add_to_break Statement #for_statement #end_break
 Vars -> Var Var-zegond
 Var-zegond -> , Var Var-zegond
 Var-zegond -> EPSILON #jump_fill_save
