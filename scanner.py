@@ -4,7 +4,7 @@ L = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 
      'x', 'y', 'z', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T',
      'U', 'V', 'W', 'X', 'Y', 'Z']
 W = [13, 10, 9, 11, 12, 32, 0]
-key_words = ["if", "else", "void", "int", "repeat", "break", "until", "return"]
+key_words = ["if", "else", "void", "int", "repeat", "break", "  ", "return"]
 line_number = 1
 index = 0
 symbol_table = {}

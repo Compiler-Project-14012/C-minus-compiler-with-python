@@ -6,19 +6,21 @@ Declaration-initial -> #save_type Type-specifier #save_id ID #Checked
 Declaration-prime -> Fun-declaration-prime
 Declaration-prime -> Var-declaration-prime
 Var-declaration-prime -> ; #add_variable    #Checked
-Var-declaration-prime -> [ #save_array_size NUM ] ; #save_array     #Checked
+Var-declaration-prime -> [ #save_array NUM ] ;      #Checked
 Fun-declaration-prime -> #start_params ( Params ) #create_record #new_return Compound-stmt #end_return #return_anyway #finish_function ####INJA
+
 Type-specifier -> int
 Type-specifier -> void
+
 Params -> #save_type int #save_id ID #add_variable Param-prime Param-list   #Checked
-Params -> void Param-list-void-abtar
-Param-list-void-abtar -> ID Param-prime Param-list
-Param-list-void-abtar -> EPSILON
+Params -> void
 Param-list -> , Param #add_variable Param-list  #Checked
 Param-list -> EPSILON
 Param -> Declaration-initial Param-prime
 Param-prime -> #define_array_argument [ ] ####INJA
 Param-prime -> EPSILON
+
+
 Compound-stmt -> #get_new_scope { Declaration-list Statement-list } #get_out_of_scope   #Checked
 Statement-list -> Statement Statement-list
 Statement-list -> EPSILON
