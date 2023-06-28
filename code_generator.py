@@ -10,8 +10,14 @@ class CodeGenerator:
                 ]
     """
 
+    '''
+        function table :
+            name | vars | return_value_address | return_address | jump_index | scope
+    '''
+
     def __init__(self):
         self.last_id = 0
+        self.function_table = []
         self.scope_stack = []
         self.current_scope = 0
         self.last_address = 0
@@ -43,21 +49,51 @@ class CodeGenerator:
         var_name = self.stack.pop()
         var_address = self.get_temp_address(1)
         symbol_table["ids"].append((self.last_index, var_name, self.current_scope, var_address, "int"))
+        self.last_id += 1
 
     def save_array(self, lookahead):
         size = lookahead[1]
         array_name = self.stack.pop()
         var_address = self.get_temp_address(1)
         array_address = self.get_temp_address(size)
-
         self.generated_code[self.last_index] = f'(ASSIGN, #{array_address}, {var_address}, )'
         self.last_index += 1
-
         symbol_table["ids"].append((array_address, array_name, "Integer[]", self.current_scope))
+        self.last_id += 1
 
     def add_code(self, first_operand, second_operand, third_operand='', fourth_operand=''):
         self.generated_code[self.last_index] = f'({first_operand}, {second_operand}, {third_operand}, {fourth_operand})'
         self.last_index += 1
+
+    def save_var_address(self, lookahead):
+        var_address = ""
+        for symbole in symbol_table.get("ids")[::-1]:
+            if lookahead[1] == symbole[1]:
+                var_address = symbole[3]
+                break
+        self.stack.append(var_address)
+
+    def result_to(self, lookahead):
+        value = self.stack.pop()
+        address = self.stack.pop()
+        self.generated_code[self.last_index] = f'(ASSIGN, {str(value)}, {str(address)}, )'
+        self.last_index += 1
+        self.stack.pop()
+
+    def find_index(self, lookahead):
+        index_of_array = self.stack.pop()
+        array_pointer = self.stack.pop()
+        t1 = self.get_temp_address(1)
+        t2 = self.get_temp_address(1)
+        t3 = self.get_temp_address(1)
+        self.generated_code[self.last_index] = f'(ASSIGN, {str(array_pointer)}, {t1}, )'
+        self.last_index += 1
+        self.generated_code[self.last_index] = f'(MULT, #4, {str(index_of_array)}, {t2})'
+        self.last_index += 1
+        self.generated_code[self.last_index] = f'(ADD, {t1}, {t2}, {t1})'
+        self.last_index += 1
+
+        self.stack.append(f'@{t1}')
 
 
     def get_new_scope(self, lookahead):
@@ -69,6 +105,10 @@ class CodeGenerator:
             if i[3] == self.current_scope:
                 symbol_table["ids"].remove(i)
         self.current_scope -= 1
+
+    '''
+        pop the address of lhs
+    '''
 
     def pop_extras(self, lookahead):
         self.stack.pop()

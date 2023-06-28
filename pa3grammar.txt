@@ -22,72 +22,109 @@ Param-prime -> EPSILON
 
 
 Compound-stmt -> #get_new_scope { Declaration-list Statement-list } #get_out_of_scope   #Checked
+
 Statement-list -> Statement Statement-list
 Statement-list -> EPSILON
+
+
 Statement -> Expression-stmt
 Statement -> Compound-stmt
 Statement -> Selection-stmt
 Statement -> Iteration-stmt
 Statement -> Return-stmt
-Statement -> For-stmt
+
+
+
 Expression-stmt -> Expression ; #pop_extras     #Checked
 Expression-stmt -> break ; #save_break_address  #Checked
 Expression-stmt -> ;
+
+
 Selection-stmt -> if ( Expression ) #save_index Statement else #jpf Statement #jump     #Checked
+
 Iteration-stmt -> repeat #add_to_breaks #save_index Statement until  ( Expression ) #until_jump #Checked
+
 Return-stmt -> return Return-stmt-prime #save_return
+
 Return-stmt-prime -> #push_index ;
 Return-stmt-prime -> Expression ;
+
 For-stmt -> for #get_temp_save #push_id_address ID = Vars #add_to_break Statement #for_statement #end_break
+
 Vars -> Var Var-zegond
 Var-zegond -> , Var Var-zegond
 Var-zegond -> EPSILON #jump_fill_save
 Var -> #push_id_address ID Var-prime #assign_jump
+
+
 Expression -> Simple-expression-zegond
 Expression -> #push_id_address ID B
-B -> = Expression #assign_operation
-B -> [ Expression ] #array_index H
+
+
+B -> = Expression #result_to
+B -> [ Expression ] #find_index H
 B -> Simple-expression-prime
-H -> = Expression #assign_operation
+
+
+H -> = Expression #result_to
 H -> G D C
+
 Simple-expression-zegond -> Additive-expression-zegond C
+
 Simple-expression-prime -> Additive-expression-prime C
+
+
 C -> #push_operator Relop Additive-expression #save_operation
 C -> EPSILON
+
 Relop -> <
 Relop -> ==
+
 Additive-expression -> Term D
+
+
 Additive-expression-prime -> Term-prime D
+
 Additive-expression-zegond -> Term-zegond D
+
 D -> #push_operator Addop Term #save_operation D
 D -> EPSILON
+
 Addop -> +
 Addop -> -
-Term -> Signed-factor G
-Term-prime -> Signed-factor-prime G
-Term-zegond -> Signed-factor-zegond G
-G -> * Signed-factor #multiply G
+
+Term -> Factor G
+
+Term-prime -> Factor-prime G
+
+Term-zegond -> Factor-zegond G
+
+G -> * Factor #multiply G
 G -> EPSILON
-Signed-factor -> + Factor
-Signed-factor -> - Factor #negate_factor
-Signed-factor -> Factor
-Signed-factor-prime -> Factor-prime
-Signed-factor-zegond -> + Factor
-Signed-factor-zegond -> - Factor #negate_factor
-Signed-factor-zegond -> Factor-zegond
+
+
+
 Factor -> ( Expression )
 Factor -> #push_id_address ID Var-call-prime
 Factor -> #save_array_size NUM
+
+
 Var-call-prime -> ( Args #implicit_output ) #call_function
 Var-call-prime -> Var-prime
+
 Var-prime -> [ Expression ] #array_index
 Var-prime -> EPSILON
+
 Factor-prime -> ( Args #implicit_output ) #call_function
 Factor-prime -> EPSILON
+
 Factor-zegond -> ( Expression )
 Factor-zegond -> #save_array_size NUM
+
 Args -> Arg-list
 Args -> EPSILON
+
 Arg-list -> Expression Arg-list-prime
+
 Arg-list-prime -> , Expression Arg-list-prime
 Arg-list-prime -> EPSILON
