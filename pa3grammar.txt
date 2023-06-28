@@ -40,7 +40,7 @@ Expression-stmt -> break ; #save_break_address  #Checked
 Expression-stmt -> ;
 
 
-Selection-stmt -> if ( Expression ) #save_index Statement else #jpf Statement #jump     #Checked
+Selection-stmt -> if ( Expression ) #save_index Statement #jpf else Statement #jump     #Checked
 
 Iteration-stmt -> repeat #add_to_breaks #save_index Statement until  ( Expression ) #until_jump #Checked
 
@@ -48,14 +48,6 @@ Return-stmt -> return Return-stmt-prime #save_return
 
 Return-stmt-prime -> #push_index ;
 Return-stmt-prime -> Expression ;
-
-For-stmt -> for #get_temp_save #push_id_address ID = Vars #add_to_break Statement #for_statement #end_break
-
-Vars -> Var Var-zegond
-Var-zegond -> , Var Var-zegond
-Var-zegond -> EPSILON #jump_fill_save
-Var -> #push_id_address ID Var-prime #assign_jump
-
 
 Expression -> Simple-expression-zegond
 Expression -> #push_id_address ID B
@@ -74,7 +66,7 @@ Simple-expression-zegond -> Additive-expression-zegond C
 Simple-expression-prime -> Additive-expression-prime C
 
 
-C -> #push_operator Relop Additive-expression #save_operation
+C -> #save_op Relop Additive-expression #make_op
 C -> EPSILON
 
 Relop -> <
@@ -87,7 +79,7 @@ Additive-expression-prime -> Term-prime D
 
 Additive-expression-zegond -> Term-zegond D
 
-D -> #push_operator Addop Term #save_operation D
+D -> #save_op Addop Term #save_operation D
 D -> EPSILON
 
 Addop -> +
@@ -105,21 +97,24 @@ G -> EPSILON
 
 
 Factor -> ( Expression )
-Factor -> #push_id_address ID Var-call-prime
-Factor -> #save_array_size NUM
+Factor -> #save_id ID Var-call-prime
+Factor -> #save_num NUM
 
 
-Var-call-prime -> ( Args #implicit_output ) #call_function
+Var-call-prime -> ( Args ) #call_function
 Var-call-prime -> Var-prime
 
-Var-prime -> [ Expression ] #array_index
+
+
+\\\
+Var-prime -> [ Expression ] #find_index
 Var-prime -> EPSILON
 
 Factor-prime -> ( Args #implicit_output ) #call_function
 Factor-prime -> EPSILON
 
 Factor-zegond -> ( Expression )
-Factor-zegond -> #save_array_size NUM
+Factor-zegond -> #save_num NUM
 
 Args -> Arg-list
 Args -> EPSILON

@@ -1,15 +1,19 @@
 from anytree import Node
 
+from code_generator import CodeGenerator
+
 e = open("syntax_errors.txt", "a")
 
 Program_node = Node("s")
 st = []
 line_index = 0
 look_ahead = ('', '')
+cg = CodeGenerator()
 
 
-def parse_token(token, stack):
-    global st, look_ahead, line_index
+def parse_token(token, stack, current_cg):
+    global st, look_ahead, line_index, cg
+    cg = current_cg
     st = stack
     look_ahead = token[1]
     line_index = token[0]
@@ -36,7 +40,9 @@ def Match(inp):
     A = inp[0]
     parent = inp[1]
     global look_ahead
-    if (
+    if A == '#':
+        cg.call_routine(parent, look_ahead)
+    elif (
             (look_ahead[0] == 'ID' and A == 'ID') or
             (look_ahead[0] == 'NUM' and A == 'NUM') or
             (look_ahead[1] == A)
