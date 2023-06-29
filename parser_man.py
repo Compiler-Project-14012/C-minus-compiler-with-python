@@ -479,7 +479,7 @@ def Expression(parent):
         Expression_node = Node('Expression', parent=parent)
         st.append((B, Expression_node))
         st.append((Match, ('ID', Expression_node)))
-        st.append((Match, ('#', 'push_id_address')))
+        st.append((Match, ('#', 'find_address')))
     elif look_ahead[0] == 'NUM' or look_ahead == ('SYMBOL', '('):
         Expression_node = Node('Expression', parent=parent)
         st.append((Simple_expression_zegond, Expression_node))
@@ -761,7 +761,7 @@ def Factor(parent):
         Factor_node = Node('Factor', parent=parent)
         st.append((Var_call_prime, Factor_node))
         st.append((Match, ('ID', Factor_node)))
-        st.append((Match, ('#', 'save_id')))
+        st.append((Match, ('#', 'find_address')))
     elif look_ahead[0] == 'NUM':
         Factor_node = Node('Factor', parent=parent)
         st.append((Match, ('NUM', Factor_node)))
@@ -787,8 +787,9 @@ def Factor(parent):
 def Var_call_prime(parent):
     if look_ahead == ('SYMBOL', '('):
         Var_call_prime_node = Node('Var-call-prime', parent=parent)
-        st.append((Match, ('#', 'call_function')))
+        st.append((Match, ('#', 'get_into_function')))
         st.append((Match, (')', Var_call_prime_node)))
+        st.append((Match, ('#', 'output')))
         st.append((Args, Var_call_prime_node))
         st.append((Match, ('(', Var_call_prime_node)))
     elif (
@@ -830,8 +831,9 @@ def Var_prime(parent):
 def Factor_prime(parent):
     if look_ahead == ('SYMBOL', '('):
         Factor_prime_node = Node('Factor-prime', parent=parent)
-        st.append((Match, ('#', 'call_function')))
+        st.append((Match, ('#', 'get_into_function')))
         st.append((Match, (')', Factor_prime_node)))
+        st.append((Match, ('#', 'output')))
         st.append((Args, Factor_prime_node))
         st.append((Match, ('(', Factor_prime_node)))
     elif (
