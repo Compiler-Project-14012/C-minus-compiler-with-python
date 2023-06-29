@@ -1,6 +1,7 @@
 import parser_man
 import scanner
 import os
+from code_generator import CodeGenerator
 
 from anytree import Node, RenderTree
 
@@ -11,9 +12,12 @@ from anytree import Node, RenderTree
 
 stack = []
 stack.append((parser_man.Program, ))
+
+cg = CodeGenerator()
+
 while True:
     token = scanner.get_token()
-    Program_node, stack, ended = parser_man.parse_token(token, stack)
+    Program_node, stack, ended = parser_man.parse_token(token, stack, cg)
     if ended:
         break
 
@@ -26,3 +30,6 @@ if os.stat("syntax_errors.txt").st_size == 0:
     e = open("syntax_errors.txt", "a")
     e.write("There is no syntax error.")
     e.close()
+
+for a in cg.generated_code:
+    print(a)
