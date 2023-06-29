@@ -7,7 +7,10 @@ Declaration-prime -> Fun-declaration-prime
 Declaration-prime -> Var-declaration-prime
 Var-declaration-prime -> ; #add_variable    #Checked
 Var-declaration-prime -> [ #save_array NUM ] ;      #Checked
-Fun-declaration-prime -> #start_params ( Params ) #create_record #new_return Compound-stmt #end_return #return_anyway #finish_function ####INJA
+
+
+
+Fun-declaration-prime -> #collect_params ( Params ) #create_AR #collect_return_indexes Compound-stmt #fill_return_indexes #Check
 
 Type-specifier -> int
 Type-specifier -> void
@@ -44,7 +47,7 @@ Selection-stmt -> if ( Expression ) #save_index Statement #jpf else Statement #j
 
 Iteration-stmt -> repeat #add_to_breaks #save_index Statement until  ( Expression ) #until_jump #Checked
 
-Return-stmt -> return Return-stmt-prime #save_return
+Return-stmt -> return Return-stmt-prime #save_returns #Checked
 
 Return-stmt-prime -> #push_index ;
 Return-stmt-prime -> Expression ;
@@ -91,7 +94,7 @@ Term-prime -> Factor-prime G
 
 Term-zegond -> Factor-zegond G
 
-G -> * Factor #multiply G
+G -> * Factor #mult G
 G -> EPSILON
 
 

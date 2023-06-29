@@ -12,26 +12,38 @@ class CodeGenerator:
 
     '''
         function table :
-            name | vars | return_value_address | return_address | jump_index | scope
+            name | vars | return_value | return_to | jump_index | scope
+    '''
+
+    '''
+       parameters :
+                lexim | scope | address | type
+    '''
+
+    '''
+        return_indexes :
+                index | return_value
+    
     '''
 
     def __init__(self):
         self.last_id = 0
-        self.function_table = []
-        self.scope_stack = []
         self.current_scope = 0
         self.last_address = 0
+        self.last_index = 0
+        self.function_table = []
+        self.scope_stack = []
         self.dec_type = ""
         self.stack = list()
+        self.params = list()
         self.generated_code = dict()
-        self.last_index = 0
         self.break_states = list()
-        self.return_values = []
+        self.return_indexes = []
 
     def call_routine(self, routine_name, look_ahead):
         self.__getattribute__(routine_name)(look_ahead)
 
-    def get_temp_address(self, number_of_words = 1):
+    def get_temp_address(self, number_of_words=1):
         start_address = self.last_address
         for i in range(number_of_words):
             self.generated_code[self.last_index] = f'(ASSIGN, #0, {self.last_address}, )'
@@ -148,6 +160,7 @@ class CodeGenerator:
         self.break_states = self.break_states[:last_break]
 
     def get_into_function(self, lookahead):
+        # TODO Call functions and recursive functions
         return
 
     def mult(self, lookahead):
@@ -180,3 +193,53 @@ class CodeGenerator:
             self.generated_code[self.last_index] = f'(EQ, {a}, {b}, {temp})'
             self.last_index += 1
         self.stack.append(temp)
+
+    def collect_params(self, lookahead):
+        self.stack.append(self.last_index)
+        self.last_index += 1
+        self.params.append('|new_func|')
+
+    def create_AR(self, lookahead):
+        return_to = self.get_temp_address()
+        return_value = self.get_temp_address()
+        jump_to = self.last_index
+        self.stack.append(return_to)
+        self.stack.append(return_value)
+        func_name = self.stack[-4]
+        func_vars = self.params.pop(self.params.index('|new_func|'))
+        func_vars = func_vars[1:]
+        AR = (func_name, func_vars, return_value, return_to, jump_to, self.current_scope)
+        self.function_table.append(AR)
+
+    def collect_return_indexes(self, lookahead):
+        self.return_indexes.append("|func_returns|")
+
+    def fill_return_indexes(self, lookahead):
+        last_returns_index = len(self.return_indexes)
+        for i in reversed(range(last_returns_index)):
+            if self.return_indexes[i] == '|func_returns|':
+                last_returns_index = i
+                break
+
+        return_indexes = self.return_indexes.pop(last_returns_index)
+        return_indexes = return_indexes[1:]
+        return_value = self.stack.pop()
+        return_to = self.stack.pop()
+        for index in return_indexes:
+            self.generated_code[index[0]] = f'(ASSIGN, {index[1]}, {return_value}, )'
+            self.generated_code[index[0] + 1] = f'(JP, {return_to}, , )'
+
+        # for void functions
+        if self.stack[-2] != "main":
+            self.generated_code[self.last_index] = f'JP, {return_to}, , )'
+            self.last_index += 1
+
+        jump_over_index = self.stack.pop()
+        func_name = self.stack.pop()
+
+        if func_name != 'main':
+            self.generated_code[jump_over_index] = f'(JP, {self.last_index}, , )'
+
+    def save_returns(self, lookahead):
+        self.return_indexes.append((self.last_index, self.stack.pop()))
+        self.last_index += 2
