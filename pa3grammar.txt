@@ -82,7 +82,7 @@ Additive-expression-prime -> Term-prime D
 
 Additive-expression-zegond -> Term-zegond D
 
-D -> #save_op Addop Term #save_operation D
+D -> #save_op Addop Term #make_op D
 D -> EPSILON
 
 Addop -> +
@@ -104,7 +104,7 @@ Factor -> #save_id ID Var-call-prime
 Factor -> #save_num NUM
 
 
-Var-call-prime -> ( Args ) #call_function
+Var-call-prime -> ( Args ) #get_into_function
 Var-call-prime -> Var-prime
 
 
@@ -113,7 +113,7 @@ Var-call-prime -> Var-prime
 Var-prime -> [ Expression ] #find_index
 Var-prime -> EPSILON
 
-Factor-prime -> ( Args #implicit_output ) #call_function
+Factor-prime -> ( Args #implicit_output ) #get_into_function
 Factor-prime -> EPSILON
 
 Factor-zegond -> ( Expression )

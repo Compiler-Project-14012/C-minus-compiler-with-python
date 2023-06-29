@@ -122,7 +122,9 @@ def Declaration_initial(parent):
     if look_ahead == ('KEYWORD', 'int') or look_ahead == ('KEYWORD', 'void'):
         Declaration_initial_node = Node('Declaration-initial', parent=parent)
         st.append((Match, ("ID", Declaration_initial_node)))
+        st.append((Match, ('#', 'save_id')))
         st.append((Type_specifier, Declaration_initial_node))
+        st.append((Match, ('#', 'save_type')))
 
     elif (
             look_ahead == ('EOF', '$') or look_ahead == ('SYMBOL', ';')
@@ -161,11 +163,13 @@ def Var_declaration_prime(parent):
     if look_ahead == ('SYMBOL', ';'):
         Var_declaration_prime_node = Node('Var-declaration-prime', parent=parent)
         st.append((Match, (';', Var_declaration_prime_node)))
+        st.append((Match, ('#', 'add_variable')))
     elif look_ahead == ('SYMBOL', '['):
         Var_declaration_prime_node = Node('Var-declaration-prime', parent=parent)
         st.append((Match, (';', Var_declaration_prime_node)))
         st.append((Match, (']', Var_declaration_prime_node)))
         st.append((Match, ('NUM', Var_declaration_prime_node)))
+        st.append((Match, ('#', 'save_array')))
         st.append((Match, ('[', Var_declaration_prime_node)))
     elif (
             look_ahead == ('EOF', '$') or look_ahead[0] == 'ID'
@@ -184,10 +188,14 @@ def Var_declaration_prime(parent):
 def Fun_declaration_prime(parent):
     if look_ahead == ('SYMBOL', '('):
         Fun_declaration_prime_node = Node('Fun-declaration-prime', parent=parent)
+        st.append((Match, ('#', 'fill_return_indexes')))
         st.append((Compound_stmt, Fun_declaration_prime_node))
+        st.append((Match, ('#', 'collect_return_indexes')))
+        st.append((Match, ('#', 'create_AR')))
         st.append((Match, (')', Fun_declaration_prime_node)))
         st.append((Params, Fun_declaration_prime_node))
         st.append((Match, ('(', Fun_declaration_prime_node)))
+        st.append((Match, ('#', 'collect_params')))
     elif (
             look_ahead == ('EOF', '$') or look_ahead[0] == 'ID' or look_ahead == ('SYMBOL', ';')
             or look_ahead[0] == 'NUM' or look_ahead == ('KEYWORD', 'int')
@@ -221,8 +229,11 @@ def Params(parent):
         Params_node = Node('Params', parent=parent)
         st.append((Param_list, Params_node))
         st.append((Param_prime, Params_node))
+        st.append((Match, ('#', 'add_variable')))
         st.append((Match, ('ID', Params_node)))
+        st.append((Match, ('#', 'save_id')))
         st.append((Match, ('int', Params_node)))
+        st.append((Match, ('#', 'save_type')))
     elif look_ahead == ('KEYWORD', 'void'):
         Params_node = Node('Params', parent=parent)
         st.append((Match, ('void', Params_node)))
@@ -237,6 +248,7 @@ def Param_list(parent):
     if look_ahead == ('SYMBOL', ','):
         Param_list_node = Node('Param-list', parent=parent)
         st.append((Param_list, Param_list_node))
+        st.append((Match, ('#', 'add_variable')))
         st.append((Param, Param_list_node))
         st.append((Match, (',', Param_list_node)))
     elif look_ahead == ('SYMBOL', ')'):
@@ -264,6 +276,7 @@ def Param_prime(parent):
         Param_prime_node = Node('Param-prime', parent=parent)
         st.append((Match, (']', Param_prime_node)))
         st.append((Match, ('[', Param_prime_node)))
+        st.append((Match, ('#', 'define_array_argument')))
     elif look_ahead == ('SYMBOL', ')') or look_ahead == ('SYMBOL', ','):
         Param_prime_node = Node('Param-prime', parent=parent)
         Node('epsilon', parent=Param_prime_node)
@@ -275,10 +288,12 @@ def Param_prime(parent):
 def Compound_stmt(parent):
     if look_ahead == ('SYMBOL', '{'):
         Compound_stmt_node = Node('Compound-stmt', parent=parent)
+        st.append((Match, ('#', 'get_out_of_scope')))
         st.append((Match, ('}', Compound_stmt_node)))
         st.append((Statement_list, Compound_stmt_node))
         st.append((Declaration_list, Compound_stmt_node))
         st.append((Match, ('{', Compound_stmt_node)))
+        st.append((Match, ('#', 'get_new_scope')))
     elif (
             look_ahead == ('EOF', '$') or look_ahead[0] == 'ID' or look_ahead == ('SYMBOL', ';')
             or look_ahead[0] == 'NUM' or look_ahead == ('SYMBOL', '(') or look_ahead == ('KEYWORD', 'int')
@@ -343,11 +358,13 @@ def Statement(parent):
 def Expression_stmt(parent):
     if look_ahead[0] == 'ID' or look_ahead[0] == 'NUM' or look_ahead == ('SYMBOL', '('):
         Expression_stmt_node = Node('Expression-stmt', parent=parent)
+        st.append((Match, ('#', 'pop_extras')))
         st.append((Match, (';', Expression_stmt_node)))
         st.append((Expression, Expression_stmt_node))
 
     elif look_ahead == ('KEYWORD', 'break'):
         Expression_stmt_node = Node('Expression-stmt', parent=parent)
+        st.append((Match, ('#', 'save_break_address')))
         st.append((Match, (';', Expression_stmt_node)))
         st.append((Match, ('break', Expression_stmt_node)))
 
@@ -368,9 +385,12 @@ def Expression_stmt(parent):
 def Selection_stmt(parent):
     if look_ahead == ('KEYWORD', 'if'):
         Selection_stmt_node = Node('Selection-stmt', parent=parent)
+        st.append((Match, ('#', 'jump')))
         st.append((Statement, Selection_stmt_node))
         st.append((Match, ('else', Selection_stmt_node)))
+        st.append((Match, ('#', 'jpf')))
         st.append((Statement, Selection_stmt_node))
+        st.append((Match, ('#', 'save_index')))
         st.append((Match, (')', Selection_stmt_node)))
         st.append((Expression, Selection_stmt_node))
         st.append((Match, ('(', Selection_stmt_node)))
@@ -391,11 +411,14 @@ def Selection_stmt(parent):
 def Iteration_stmt(parent):
     if look_ahead == ('KEYWORD', 'repeat'):
         Iteration_stmt_node = Node('Iteration-stmt', parent=parent)
+        st.append((Match, ('#', 'until_jump')))
         st.append((Match, (')', Iteration_stmt_node)))
         st.append((Expression, Iteration_stmt_node))
         st.append((Match, ('(', Iteration_stmt_node)))
         st.append((Match, ('until', Iteration_stmt_node)))
         st.append((Statement, Iteration_stmt_node))
+        st.append((Match, ('#', 'save_index')))
+        st.append((Match, ('#', 'add_to_breaks')))
         st.append((Match, ('repeat', Iteration_stmt_node)))
     elif (
             look_ahead[0] == 'ID' or look_ahead == ('SYMBOL', ';') or look_ahead[0] == 'NUM'
@@ -413,6 +436,7 @@ def Iteration_stmt(parent):
 def Return_stmt(parent):
     if look_ahead == ('KEYWORD', 'return'):
         Return_stmt_node = Node('Return-stmt', parent=parent)
+        st.append((Match, ('#', 'save_returns')))
         st.append((Return_stmt_prime, Return_stmt_node))
         st.append((Match, ('return', Return_stmt_node)))
 
@@ -433,6 +457,7 @@ def Return_stmt_prime(parent):
     if look_ahead == ('SYMBOL', ';'):
         Return_stmt_prime_node = Node('Return-stmt-prime', parent=parent)
         st.append((Match, (';', Return_stmt_prime_node)))
+        st.append((Match, ('#', 'push_index')))
     elif look_ahead[0] == 'ID' or look_ahead[0] == 'NUM' or look_ahead == ('SYMBOL', '('):
         Return_stmt_prime_node = Node('Return-stmt-prime', parent=parent)
         st.append((Match, (';', Return_stmt_prime_node)))
@@ -454,6 +479,7 @@ def Expression(parent):
         Expression_node = Node('Expression', parent=parent)
         st.append((B, Expression_node))
         st.append((Match, ('ID', Expression_node)))
+        st.append((Match, ('#', 'push_id_address')))
     elif look_ahead[0] == 'NUM' or look_ahead == ('SYMBOL', '('):
         Expression_node = Node('Expression', parent=parent)
         st.append((Simple_expression_zegond, Expression_node))
@@ -470,12 +496,14 @@ def Expression(parent):
 def B(parent):
     if look_ahead == ('SYMBOL', '='):
         B_node = Node('B', parent=parent)
+        st.append((Match, ('#', 'result_to')))
         st.append((Expression, B_node))
         st.append((Match, ('=', B_node)))
 
     elif look_ahead == ('SYMBOL', '['):
         B_node = Node('B', parent=parent)
         st.append((H, B_node))
+        st.append((Match, ('#', 'find_index')))
         st.append((Match, (']', B_node)))
         st.append((Expression, B_node))
         st.append((Match, ('[', B_node)))
@@ -496,6 +524,7 @@ def B(parent):
 def H(parent):
     if look_ahead == ('SYMBOL', '='):
         H_node = Node('H', parent=parent)
+        st.append((Match, ('#', 'result_to')))
         st.append((Expression, H_node))
         st.append((Match, ('=', H_node)))
     elif (
@@ -546,8 +575,10 @@ def Simple_expression_prime(parent):
 def C(parent):
     if look_ahead == ('SYMBOL', '<') or look_ahead == ('SYMBOL', '=='):
         C_node = Node('C', parent=parent)
+        st.append((Match, ('#', 'make_op')))
         st.append((Additive_expression, C_node))
         st.append((Relop, C_node))
+        st.append((Match, ('#', 'save_op')))
     elif (
             look_ahead == ('SYMBOL', ';') or look_ahead == ('SYMBOL', ']')
             or look_ahead == ('SYMBOL', ')') or look_ahead == ('SYMBOL', ',')
@@ -624,8 +655,10 @@ def D(parent):
     if look_ahead == ('SYMBOL', '+') or look_ahead == ('SYMBOL', '-'):
         D_node = Node('D', parent=parent)
         st.append((D, D_node))
+        st.append((Match, ('#', 'make_op')))
         st.append((Term, D_node))
         st.append((Addop, D_node))
+        st.append((Match, ('#', 'save_op')))
     elif (
             look_ahead == ('SYMBOL', ';') or look_ahead == ('SYMBOL', ']')
             or look_ahead == ('SYMBOL', ')') or look_ahead == ('SYMBOL', ',') or look_ahead == ('SYMBOL', '<')
@@ -707,6 +740,7 @@ def G(parent):
     if look_ahead == ('SYMBOL', '*'):
         G_node = Node('G', parent=parent)
         st.append((G, G_node))
+        st.append((Match, ('#', 'mult')))
         st.append((Factor, G_node))
         st.append((Match, ('*', G_node)))
     elif (
@@ -727,9 +761,11 @@ def Factor(parent):
         Factor_node = Node('Factor', parent=parent)
         st.append((Var_call_prime, Factor_node))
         st.append((Match, ('ID', Factor_node)))
+        st.append((Match, ('#', 'save_id')))
     elif look_ahead[0] == 'NUM':
         Factor_node = Node('Factor', parent=parent)
         st.append((Match, ('NUM', Factor_node)))
+        st.append((Match, ('#', 'save_num')))
     elif look_ahead == ('SYMBOL', '('):
         Factor_node = Node('Factor', parent=parent)
         st.append((Match, (')', Factor_node)))
@@ -751,6 +787,7 @@ def Factor(parent):
 def Var_call_prime(parent):
     if look_ahead == ('SYMBOL', '('):
         Var_call_prime_node = Node('Var-call-prime', parent=parent)
+        st.append((Match, ('#', 'call_function')))
         st.append((Match, (')', Var_call_prime_node)))
         st.append((Args, Var_call_prime_node))
         st.append((Match, ('(', Var_call_prime_node)))
@@ -772,6 +809,7 @@ def Var_call_prime(parent):
 def Var_prime(parent):
     if look_ahead == ('SYMBOL', '['):
         Var_prime_node = Node('Var-prime', parent=parent)
+        st.append((Match, ('#', 'find_index')))
         st.append((Match, (']', Var_prime_node)))
         st.append((Expression, Var_prime_node))
         st.append((Match, ('[', Var_prime_node)))
@@ -792,6 +830,7 @@ def Var_prime(parent):
 def Factor_prime(parent):
     if look_ahead == ('SYMBOL', '('):
         Factor_prime_node = Node('Factor-prime', parent=parent)
+        st.append((Match, ('#', 'call_function')))
         st.append((Match, (')', Factor_prime_node)))
         st.append((Args, Factor_prime_node))
         st.append((Match, ('(', Factor_prime_node)))
@@ -818,6 +857,7 @@ def Factor_zegond(parent):
     elif look_ahead[0] == 'NUM':
         Factor_zegond_node = Node('Factor-zegond', parent=parent)
         st.append((Match, ('NUM', Factor_zegond_node)))
+        st.append((Match, ('#', 'save_num')))
     elif (
             look_ahead == ('SYMBOL', ';') or look_ahead == ('SYMBOL', ']')
             or look_ahead == ('SYMBOL', ')') or look_ahead == ('SYMBOL', ',')
