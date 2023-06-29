@@ -20,7 +20,7 @@ Params -> void
 Param-list -> , Param #add_variable Param-list  #Checked
 Param-list -> EPSILON
 Param -> Declaration-initial Param-prime
-Param-prime -> #define_array_argument [ ] ####INJA
+Param-prime ->  [ ]
 Param-prime -> EPSILON
 
 
@@ -53,7 +53,7 @@ Return-stmt-prime -> #push_index ;
 Return-stmt-prime -> Expression ;
 
 Expression -> Simple-expression-zegond
-Expression -> #push_id_address ID B
+Expression -> #find_address ID B
 
 
 B -> = Expression #result_to
@@ -100,11 +100,11 @@ G -> EPSILON
 
 
 Factor -> ( Expression )
-Factor -> #save_id ID Var-call-prime
+Factor -> #find_address ID Var-call-prime
 Factor -> #save_num NUM
 
 
-Var-call-prime -> ( Args ) #get_into_function
+Var-call-prime -> ( Args #output ) #get_into_function
 Var-call-prime -> Var-prime
 
 
@@ -113,7 +113,7 @@ Var-call-prime -> Var-prime
 Var-prime -> [ Expression ] #find_index
 Var-prime -> EPSILON
 
-Factor-prime -> ( Args #implicit_output ) #get_into_function
+Factor-prime -> ( Args #output ) #get_into_function
 Factor-prime -> EPSILON
 
 Factor-zegond -> ( Expression )

@@ -77,14 +77,6 @@ class CodeGenerator:
         symbol_table["ids"].append((array_address, array_name, "Integer[]", self.current_scope))
         self.last_id += 1
 
-    def save_var_address(self, lookahead):
-        var_address = ""
-        for symbole in symbol_table.get("ids")[::-1]:
-            if lookahead[1] == symbole[1]:
-                var_address = symbole[3]
-                break
-        self.stack.append(var_address)
-
     def result_to(self, lookahead):
         value = self.stack.pop()
         address = self.stack.pop()
@@ -160,8 +152,50 @@ class CodeGenerator:
         self.break_states = self.break_states[:last_break]
 
     def get_into_function(self, lookahead):
-        # TODO Call functions and recursive functions
-        return
+        func = 0
+        args = []
+        for i in self.stack[::-1]:
+            if isinstance(i, tuple):
+                func = i
+                break
+            args.append(i)
+        args.reverse()
+        func_args = func[2]
+        for i in range(len(args)):
+            var = func_args[i]
+            value = args[i]
+            self.generated_code[self.last_index] = f'(ASSIGN, {value}, {var}, )'
+            self.last_index += 1
+            self.stack.pop()
+        self.stack.pop()
+
+        self.generated_code[self.last_index] = f'(ASSIGN, {self.last_index + 2}, {func[3]}, )'
+        self.last_index += 1
+
+        self.generated_code[self.last_index] = f'(JP, #{func[4]}, , )'
+        self.last_index += 1
+
+        result = self.get_temp_address()
+        self.generated_code[self.last_index] = f'(ASSIGN, {func[2]}, {result}, )'
+        self.last_index += 1
+
+        self.stack.append(result)
+
+    def output(self, lookahead):
+        if self.stack[-2] == 'output':
+            self.generated_code[self.last_index] = f'(PRINT, {self.stack.pop()}, , )'
+
+    def find_address(self, lookahead):
+        if lookahead[1] == 'output':
+            self.stack.append(lookahead[1])
+        else:
+            for record in symbol_table['ids'][::-1]:
+                if record[1] == lookahead[1]:
+                    if record[4] == 'function':
+                        func = self.function_table[record[3]]
+                        self.stack.append(func)
+                    else:
+                        self.stack.append(record[3])
 
     def mult(self, lookahead):
         a = self.stack.pop()
@@ -210,6 +244,9 @@ class CodeGenerator:
         func_vars = func_vars[1:]
         AR = (func_name, func_vars, return_value, return_to, jump_to, self.current_scope)
         self.function_table.append(AR)
+        symbol_table["ids"].append(
+            (self.last_index, func_name, self.current_scope, len(self.function_table) - 1, "function"))
+        self.last_id += 1
 
     def collect_return_indexes(self, lookahead):
         self.return_indexes.append("|func_returns|")
@@ -239,6 +276,8 @@ class CodeGenerator:
 
         if func_name != 'main':
             self.generated_code[jump_over_index] = f'(JP, {self.last_index}, , )'
+        else:
+            self.generated_code[jump_over_index] = f'(ASSIGN, #0, {self.get_temp_address()}, )'
 
     def save_returns(self, lookahead):
         self.return_indexes.append((self.last_index, self.stack.pop()))
