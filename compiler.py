@@ -31,5 +31,4 @@ if os.stat("syntax_errors.txt").st_size == 0:
     e.write("There is no syntax error.")
     e.close()
 
-for a in cg.generated_code:
-    print(a)
+print(cg.generated_code)

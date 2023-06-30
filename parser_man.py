@@ -37,6 +37,7 @@ def parse_token(token, stack, current_cg):
 
 
 def Match(inp):
+    print(inp, line_index)
     A = inp[0]
     parent = inp[1]
     global look_ahead
@@ -229,7 +230,7 @@ def Params(parent):
         Params_node = Node('Params', parent=parent)
         st.append((Param_list, Params_node))
         st.append((Param_prime, Params_node))
-        st.append((Match, ('#', 'add_variable')))
+        st.append((Match, ('#', 'add_variable_params')))
         st.append((Match, ('ID', Params_node)))
         st.append((Match, ('#', 'save_id')))
         st.append((Match, ('int', Params_node)))
@@ -248,7 +249,7 @@ def Param_list(parent):
     if look_ahead == ('SYMBOL', ','):
         Param_list_node = Node('Param-list', parent=parent)
         st.append((Param_list, Param_list_node))
-        st.append((Match, ('#', 'add_variable')))
+        st.append((Match, ('#', 'add_variable_params')))
         st.append((Param, Param_list_node))
         st.append((Match, (',', Param_list_node)))
     elif look_ahead == ('SYMBOL', ')'):
@@ -276,7 +277,6 @@ def Param_prime(parent):
         Param_prime_node = Node('Param-prime', parent=parent)
         st.append((Match, (']', Param_prime_node)))
         st.append((Match, ('[', Param_prime_node)))
-        st.append((Match, ('#', 'define_array_argument')))
     elif look_ahead == ('SYMBOL', ')') or look_ahead == ('SYMBOL', ','):
         Param_prime_node = Node('Param-prime', parent=parent)
         Node('epsilon', parent=Param_prime_node)

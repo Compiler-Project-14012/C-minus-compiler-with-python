@@ -15,9 +15,9 @@ Fun-declaration-prime -> #collect_params ( Params ) #create_AR #collect_return_i
 Type-specifier -> int
 Type-specifier -> void
 
-Params -> #save_type int #save_id ID #add_variable Param-prime Param-list   #Checked
+Params -> #save_type int #save_id ID #add_variable_params Param-prime Param-list   #Checked
 Params -> void
-Param-list -> , Param #add_variable Param-list  #Checked
+Param-list -> , Param #add_variable_params Param-list  #Checked
 Param-list -> EPSILON
 Param -> Declaration-initial Param-prime
 Param-prime ->  [ ]
