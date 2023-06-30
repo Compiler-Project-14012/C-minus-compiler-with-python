@@ -158,7 +158,8 @@ class CodeGenerator:
         self.break_states = self.break_states[:last_break]
 
     def get_into_function(self, lookahead):
-        print(self.function_table)
+        print(self.symbol_table)
+        print(self.stack)
         func = 0
         args = []
         for i in self.stack[::-1]:
@@ -167,7 +168,7 @@ class CodeGenerator:
                 break
             args.append(i)
         args.reverse()
-        func_args = func[2]
+        func_args = func[1]
         for i in range(len(args)):
             var = func_args[i]
             value = args[i]
@@ -198,6 +199,7 @@ class CodeGenerator:
         else:
             for record in self.symbol_table[::-1]:
                 if record[1] == lookahead[1]:
+                    print(record)
                     if record[4] == 'function':
                         func = self.function_table[record[3]]
                         self.stack.append(func)
