@@ -1,8 +1,7 @@
 class CodeGenerator:
     """
                 symbol table :
-                keywords : [] ,
-                ids : [
+                [
                     id | lexim | scope | address | type
                 ]
     """
@@ -61,15 +60,15 @@ class CodeGenerator:
     def add_variable(self, lookahead):
         var_name = self.stack.pop()
         var_address = self.get_temp_address()
-        self.symbol_table.append((self.last_index, var_name, self.current_scope, var_address, "int"))
+        self.symbol_table.append((self.last_id, var_name, self.current_scope, var_address, "int"))
         self.last_id += 1
 
     def add_variable_params(self, lookahead):
         var_name = self.stack.pop()
         var_address = self.get_temp_address()
-        self.symbol_table.append((self.last_index, var_name, self.current_scope, var_address, "int"))
+        self.symbol_table.append((self.last_id, var_name, self.current_scope, var_address, "int"))
         self.last_id += 1
-        self.params.append((self.last_index, var_name, self.current_scope, var_address, "int"))
+        self.params.append((self.last_id, var_name, self.current_scope, var_address, "int"))
 
     def save_num(self, lookahead):
         self.stack.append('#' + str(lookahead[1]))
@@ -81,7 +80,7 @@ class CodeGenerator:
         array_address = self.get_temp_address(size)
         self.generated_code[self.last_index] = f'(ASSIGN, #{array_address}, {var_address}, )'
         self.last_index += 1
-        self.symbol_table.append((array_address, array_name, "Integer[]", self.current_scope))
+        self.symbol_table.append((self.last_id, array_name,self.current_scope,var_address, "int[]"))
         self.last_id += 1
 
     def result_to(self, lookahead):
@@ -111,7 +110,7 @@ class CodeGenerator:
     def get_out_of_scope(self, lookahead):
         ids = self.symbol_table
         for i in reversed(ids):
-            if i[3] == self.current_scope:
+            if i[2] == self.current_scope:
                 self.symbol_table.remove(i)
         self.current_scope -= 1
 
@@ -158,36 +157,35 @@ class CodeGenerator:
         self.break_states = self.break_states[:last_break]
 
     def get_into_function(self, lookahead):
-        print(self.symbol_table)
-        print(self.stack)
-        func = 0
-        args = []
-        for i in self.stack[::-1]:
-            if isinstance(i, tuple):
-                func = i
-                break
-            args.append(i)
-        args.reverse()
-        func_args = func[1]
-        for i in range(len(args)):
-            var = func_args[i]
-            value = args[i]
-            self.generated_code[self.last_index] = f'(ASSIGN, {value}, {var}, )'
-            self.last_index += 1
+        if self.stack[-1] != 'output':
+            func = 0
+            args = []
+            for i in self.stack[::-1]:
+                if isinstance(i, tuple):
+                    func = i
+                    break
+                args.append(i)
+            args.reverse()
+            func_args = func[1]
+            for i in range(len(args)):
+                var = func_args[i]
+                value = args[i]
+                self.generated_code[self.last_index] = f'(ASSIGN, {value}, {var}, )'
+                self.last_index += 1
+                self.stack.pop()
             self.stack.pop()
-        self.stack.pop()
 
-        self.generated_code[self.last_index] = f'(ASSIGN, {self.last_index + 2}, {func[3]}, )'
-        self.last_index += 1
+            self.generated_code[self.last_index] = f'(ASSIGN, {self.last_index + 2}, {func[3]}, )'
+            self.last_index += 1
 
-        self.generated_code[self.last_index] = f'(JP, #{func[4]}, , )'
-        self.last_index += 1
+            self.generated_code[self.last_index] = f'(JP, #{func[4]}, , )'
+            self.last_index += 1
 
-        result = self.get_temp_address()
-        self.generated_code[self.last_index] = f'(ASSIGN, {func[2]}, {result}, )'
-        self.last_index += 1
+            result = self.get_temp_address()
+            self.generated_code[self.last_index] = f'(ASSIGN, {func[2]}, {result}, )'
+            self.last_index += 1
 
-        self.stack.append(result)
+            self.stack.append(result)
 
     def output(self, lookahead):
         if self.stack[-2] == 'output':
@@ -199,7 +197,6 @@ class CodeGenerator:
         else:
             for record in self.symbol_table[::-1]:
                 if record[1] == lookahead[1]:
-                    print(record)
                     if record[4] == 'function':
                         func = self.function_table[record[3]]
                         self.stack.append(func)
