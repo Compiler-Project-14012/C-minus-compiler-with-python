@@ -287,7 +287,7 @@ class CodeGenerator:
 
         # for void functions
         if self.stack[-2] != "main":
-            self.generated_code[self.last_index] = f'(JP, {return_to}, , )'
+            self.generated_code[self.last_index] = f'(JP, @{return_to}, , )'
             self.last_index += 1
 
         jump_over_index = self.stack.pop()
