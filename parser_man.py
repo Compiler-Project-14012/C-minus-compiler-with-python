@@ -73,6 +73,7 @@ def Program():
     if look_ahead == ('KEYWORD', 'int') or look_ahead == ('KEYWORD', 'void'):
         Program_node = Node('Program')
         st.append((Declaration_list, Program_node))
+        st.append((Match, ('#', 'start')))
     elif look_ahead == ('EOF', '$'):
         Program_node = Node('Program')
     else:
