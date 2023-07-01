@@ -38,7 +38,6 @@ class CodeGenerator:
         self.symbol_table = []
 
     def call_routine(self, routine_name, look_ahead):
-        print(self.last_index)
         self.__getattribute__(routine_name)(look_ahead)
 
     def get_temp_address(self, number_of_words=1):
@@ -124,12 +123,10 @@ class CodeGenerator:
 
     def save_break_address(self, lookahead):
         self.break_states.append(self.last_index)
-        print('break', self.last_index)
         self.last_index += 1
 
     def save_index(self, lookahead):
         self.stack.append(self.last_index)
-        print('index', self.last_index)
         self.last_index += 1
 
     def jpf(self, lookahead):
@@ -148,7 +145,6 @@ class CodeGenerator:
     def until_jump(self, lookahead):
         condition = self.stack.pop()
         repeat_start = self.stack.pop()
-        print(condition, repeat_start)
         self.generated_code[repeat_start] = f'(ASSIGN, #0, {self.get_temp_address()}, )'
         self.generated_code[self.last_index] = f'(JPF, {condition}, {self.last_index + 2}, )'
         self.last_index += 1
@@ -176,7 +172,6 @@ class CodeGenerator:
             func_args = func[1]
             for i in range(len(args)):
                 var = func_args[i][3]
-                print(var)
                 value = args[i]
                 self.generated_code[self.last_index] = f'(ASSIGN, {str(value)}, {str(var)}, )'
                 self.last_index += 1
@@ -270,7 +265,6 @@ class CodeGenerator:
         self.return_indexes.append("|func_returns|")
 
     def fill_return_indexes(self, lookahead):
-        print(self.return_indexes)
         last_returns_index = len(self.return_indexes)
         for i in reversed(range(last_returns_index)):
             if self.return_indexes[i] == '|func_returns|':
@@ -286,8 +280,6 @@ class CodeGenerator:
             self.generated_code[index[0]] = f'(ASSIGN, {index[1]}, {return_value}, )'
             self.generated_code[index[0] + 1] = f'(JP, {return_to}, , )'
 
-        print(self.stack)
-        print(self.last_index)
         # for void functions
         if self.stack[-2] != "main":
             self.generated_code[self.last_index] = f'(JP, {return_to}, , )'
@@ -303,5 +295,4 @@ class CodeGenerator:
 
     def save_returns(self, lookahead):
         self.return_indexes.append((self.last_index, self.stack.pop()))
-        print('return', self.last_index)
         self.last_index += 2

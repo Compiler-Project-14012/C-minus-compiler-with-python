@@ -37,7 +37,6 @@ def parse_token(token, stack, current_cg):
 
 
 def Match(inp):
-    print(inp, line_index)
     A = inp[0]
     parent = inp[1]
     global look_ahead

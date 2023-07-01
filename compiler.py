@@ -21,15 +21,15 @@ while True:
     if ended:
         break
 
-parse_tree = open("parse_tree.txt", "a", encoding="utf-8")
-for pre, fill, node in RenderTree(Program_node):
-    strings = pre + node.name.replace('\'', '')
-    parse_tree.write(strings + '\n')
-parse_tree.close()
-if os.stat("syntax_errors.txt").st_size == 0:
-    e = open("syntax_errors.txt", "a")
-    e.write("There is no syntax error.")
-    e.close()
+#parse_tree = open("parse_tree.txt", "a", encoding="utf-8")
+#for pre, fill, node in RenderTree(Program_node):
+#    strings = pre + node.name.replace('\'', '')
+#    parse_tree.write(strings + '\n')
+#parse_tree.close()
+#if os.stat("syntax_errors.txt").st_size == 0:
+#    e = open("syntax_errors.txt", "a")
+#    e.write("There is no syntax error.")
+#    e.close()
 
 out = open('output.txt','w')
 for i in range(len(cg.generated_code.keys())):
