@@ -39,6 +39,7 @@ class CodeGenerator:
 
     def call_routine(self, routine_name, look_ahead):
         self.__getattribute__(routine_name)(look_ahead)
+        print(self.last_index)
 
     def get_temp_address(self, number_of_words=1):
         number_of_words = int(number_of_words)
@@ -69,7 +70,6 @@ class CodeGenerator:
         self.params.append((self.last_id, var_name, self.current_scope, var_address, "int"))
         self.last_id += 1
 
-
     def save_num(self, lookahead):
         self.stack.append('#' + str(lookahead[1]))
 
@@ -80,7 +80,7 @@ class CodeGenerator:
         array_address = self.get_temp_address(size)
         self.generated_code[self.last_index] = f'(ASSIGN, #{array_address}, {var_address}, )'
         self.last_index += 1
-        self.symbol_table.append((self.last_id, array_name,self.current_scope,var_address, "int[]"))
+        self.symbol_table.append((self.last_id, array_name, self.current_scope, var_address, "int[]"))
         self.last_id += 1
 
     def result_to(self, lookahead):
@@ -178,10 +178,12 @@ class CodeGenerator:
                 self.stack.pop()
             self.stack.pop()
 
-            self.generated_code[self.last_index] = f'(ASSIGN, {self.last_index + 2}, {func[3]}, )'
+            print(func)
+
+            self.generated_code[self.last_index] = f'(ASSIGN, #{self.last_index + 2}, {func[3]}, )'
             self.last_index += 1
 
-            self.generated_code[self.last_index] = f'(JP, #{func[4]}, , )'
+            self.generated_code[self.last_index] = f'(JP, {func[4]}, , )'
             self.last_index += 1
 
             result = self.get_temp_address()
@@ -204,6 +206,7 @@ class CodeGenerator:
                         func = self.function_table[record[3]]
                         self.stack.append(func)
                     else:
+                        print(record)
                         self.stack.append(record[3])
                     break
 
@@ -223,18 +226,19 @@ class CodeGenerator:
         op = self.stack.pop()
         b = self.stack.pop()
         temp = self.get_temp_address()
+        print(temp)
 
         if op == '+':
-            self.generated_code[self.last_index] = f'(ADD, {a}, {b}, {temp})'
+            self.generated_code[self.last_index] = f'(ADD, {b}, {a}, {temp})'
             self.last_index += 1
         elif op == '-':
-            self.generated_code[self.last_index] = f'(SUB, {a}, {b}, {temp})'
+            self.generated_code[self.last_index] = f'(SUB, {b}, {a}, {temp})'
             self.last_index += 1
         elif op == '<':
-            self.generated_code[self.last_index] = f'(LT, {a}, {b}, {temp})'
+            self.generated_code[self.last_index] = f'(LT, {b}, {a}, {temp})'
             self.last_index += 1
         elif op == '==':
-            self.generated_code[self.last_index] = f'(EQ, {a}, {b}, {temp})'
+            self.generated_code[self.last_index] = f'(EQ, {b}, {a}, {temp})'
             self.last_index += 1
         self.stack.append(temp)
 
