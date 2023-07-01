@@ -23,6 +23,7 @@ class CodeGenerator:
     '''
 
     def __init__(self):
+        self.stack_pointer = 5000
         self.last_id = 0
         self.current_scope = 0
         self.last_address = 0
@@ -150,17 +151,27 @@ class CodeGenerator:
         self.generated_code[self.last_index] = f'(JPF, {condition}, {repeat_start}, )'
         self.last_index += 1
         last_break = 0
-        for  i in reversed(range(len(self.break_states))):
+        for i in reversed(range(len(self.break_states))):
             if self.break_states[i] == "new-break":
                 last_break = i
         print(last_break)
-        breaks = self.break_states[last_break +1:]
+        breaks = self.break_states[last_break + 1:]
         print(breaks)
         print(self.break_states)
         for i in self.break_states[last_break + 1:]:
             self.generated_code[i] = f"(JP, {self.last_index}, , )"
 
         self.break_states = self.break_states[:last_break]
+
+    def push_to_stack(self, inp):
+        self.generated_code[self.last_index] = f'(ASSIGN, {inp}, {self.stack_pointer}, )'
+        self.last_index += 1
+        self.stack_pointer -= 4
+
+    def pop_from_stack(self):
+        pointer = self.stack_pointer
+        self.stack_pointer += 4
+        return pointer
 
     def get_into_function(self, lookahead):
         if self.stack[-1] != 'output':
@@ -173,6 +184,11 @@ class CodeGenerator:
                 args.append(i)
             args.reverse()
             func_args = func[1]
+
+            self.push_to_stack(func_args[3])
+            for i in range(len(func_args)):
+                self.push_to_stack(func_args[i][3])
+
             for i in range(len(args)):
                 var = func_args[i][3]
                 value = args[i]
@@ -187,6 +203,13 @@ class CodeGenerator:
             self.last_index += 1
 
             self.generated_code[self.last_index] = f'(JP, {func[4]}, , )'
+            self.last_index += 1
+
+            for i in reversed(range(len(func_args))):
+                self.generated_code[self.last_index] = f'(ASSIGN, {self.pop_from_stack()}, {func_args[i][3]}, )'
+                self.last_index += 1
+
+            self.generated_code[self.last_index] = f'(ASSIGN, {self.pop_from_stack()}, {func_args[3]}, )'
             self.last_index += 1
 
             result = self.get_temp_address()
@@ -249,8 +272,6 @@ class CodeGenerator:
         self.stack.append(temp)
 
     def collect_params(self, lookahead):
-        self.stack.append(self.last_index)
-        self.last_index += 1
         self.params.append('|new_func|')
 
     def create_AR(self, lookahead):
