@@ -190,6 +190,7 @@ class CodeGenerator:
             result = self.get_temp_address()
             self.generated_code[self.last_index] = f'(ASSIGN, {func[2]}, {result}, )'
             self.last_index += 1
+            print(func)
 
             self.stack.append(result)
 
@@ -250,8 +251,8 @@ class CodeGenerator:
 
     def create_AR(self, lookahead):
         return_to = self.get_temp_address()
-        return_value = self.get_temp_address()
         jump_to = self.last_index
+        return_value = self.get_temp_address()
         self.stack.append(return_to)
         self.stack.append(return_value)
         func_name = self.stack[-4]
@@ -263,7 +264,7 @@ class CodeGenerator:
         AR = (func_name, func_vars, return_value, return_to, jump_to, self.current_scope)
         self.function_table.append(AR)
         self.symbol_table.append(
-            (self.last_index, func_name, self.current_scope, len(self.function_table) - 1, "function"))
+            (self.last_id, func_name, self.current_scope, len(self.function_table) - 1, "function"))
         self.last_id += 1
 
     def collect_return_indexes(self, lookahead):
