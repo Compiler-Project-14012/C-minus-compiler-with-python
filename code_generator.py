@@ -123,10 +123,12 @@ class CodeGenerator:
 
     def save_break_address(self, lookahead):
         self.break_states.append(self.last_index)
+        print('break', self.last_index)
         self.last_index += 1
 
     def save_index(self, lookahead):
         self.stack.append(self.last_index)
+        print('index', self.last_index)
         self.last_index += 1
 
     def jpf(self, lookahead):
@@ -143,9 +145,13 @@ class CodeGenerator:
         self.break_states.append("new-break")
 
     def until_jump(self, lookahead):
-        self.generated_code[self.last_index] = f'(JPF, {self.stack.pop()}, {self.last_index + 2}, )'
+        condition = self.stack.pop()
+        repeat_start = self.stack.pop()
+        print(condition, repeat_start)
+        self.generated_code[repeat_start] = f'(ASSIGN, #0, {self.get_temp_address()}, )'
+        self.generated_code[self.last_index] = f'(JPF, {condition}, {self.last_index + 2}, )'
         self.last_index += 1
-        self.generated_code[self.last_index] = f'(JP, {self.stack.pop()}, , )'
+        self.generated_code[self.last_index] = f'(JP, {repeat_start}, , )'
         self.last_index += 1
         last_break = 0
         for index, i in enumerate(reversed(self.break_states)):
@@ -292,4 +298,5 @@ class CodeGenerator:
 
     def save_returns(self, lookahead):
         self.return_indexes.append((self.last_index, self.stack.pop()))
+        print('return', self.last_index)
         self.last_index += 2
