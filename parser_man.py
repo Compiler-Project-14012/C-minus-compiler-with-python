@@ -457,7 +457,7 @@ def Return_stmt_prime(parent):
     if look_ahead == ('SYMBOL', ';'):
         Return_stmt_prime_node = Node('Return-stmt-prime', parent=parent)
         st.append((Match, (';', Return_stmt_prime_node)))
-        st.append((Match, ('#', 'push_index')))
+        st.append((Match, ('#', 'fake_value')))
     elif look_ahead[0] == 'ID' or look_ahead[0] == 'NUM' or look_ahead == ('SYMBOL', '('):
         Return_stmt_prime_node = Node('Return-stmt-prime', parent=parent)
         st.append((Match, (';', Return_stmt_prime_node)))

@@ -67,8 +67,8 @@ class CodeGenerator:
     def add_variable_params(self, lookahead):
         var_name = self.stack.pop()
         var_address = self.get_temp_address()
-        self.symbol_table.append((self.last_id, var_name, self.current_scope, var_address, "int"))
-        self.params.append((self.last_id, var_name, self.current_scope, var_address, "int"))
+        self.symbol_table.append((self.last_id, var_name, self.current_scope + 1, var_address, "int"))
+        self.params.append((self.last_id, var_name, self.current_scope + 1, var_address, "int"))
         self.last_id += 1
 
     def save_num(self, lookahead):
@@ -147,14 +147,16 @@ class CodeGenerator:
         condition = self.stack.pop()
         repeat_start = self.stack.pop()
         self.generated_code[repeat_start] = f'(ASSIGN, #0, {self.get_temp_address()}, )'
-        self.generated_code[self.last_index] = f'(JPF, {condition}, {self.last_index + 2}, )'
-        self.last_index += 1
-        self.generated_code[self.last_index] = f'(JP, {repeat_start}, , )'
+        self.generated_code[self.last_index] = f'(JPF, {condition}, {repeat_start}, )'
         self.last_index += 1
         last_break = 0
-        for index, i in enumerate(reversed(self.break_states)):
-            if i == "new-break":
-                last_break = index
+        for  i in reversed(range(len(self.break_states))):
+            if self.break_states[i] == "new-break":
+                last_break = i
+        print(last_break)
+        breaks = self.break_states[last_break +1:]
+        print(breaks)
+        print(self.break_states)
         for i in self.break_states[last_break + 1:]:
             self.generated_code[i] = f"(JP, {self.last_index}, , )"
 
@@ -193,10 +195,12 @@ class CodeGenerator:
             print(func)
 
             self.stack.append(result)
+            print(self.symbol_table)
 
     def output(self, lookahead):
         if self.stack[-2] == 'output':
             self.generated_code[self.last_index] = f'(PRINT, {self.stack.pop()}, , )'
+            self.last_index += 1
 
     def find_address(self, lookahead):
         if lookahead[1] == 'output':
@@ -266,6 +270,7 @@ class CodeGenerator:
         self.symbol_table.append(
             (self.last_id, func_name, self.current_scope, len(self.function_table) - 1, "function"))
         self.last_id += 1
+        print(self.function_table)
 
     def collect_return_indexes(self, lookahead):
         self.return_indexes.append("|func_returns|")
@@ -279,7 +284,7 @@ class CodeGenerator:
         return_indexes = self.return_indexes[last_returns_index:]
         return_indexes = return_indexes[1:]
         self.return_indexes = self.return_indexes[:last_returns_index]
-
+        print(self.stack)
         return_value = self.stack.pop()
         return_to = self.stack.pop()
         for index in return_indexes:
@@ -291,14 +296,19 @@ class CodeGenerator:
             self.generated_code[self.last_index] = f'(JP, @{return_to}, , )'
             self.last_index += 1
 
+        print(self.stack)
         jump_over_index = self.stack.pop()
         func_name = self.stack.pop()
-
+        print(jump_over_index)
         if func_name != 'main':
             self.generated_code[jump_over_index] = f'(JP, {self.last_index}, , )'
         else:
             self.generated_code[jump_over_index] = f'(ASSIGN, #0, {self.get_temp_address()}, )'
+        print(self.symbol_table)
 
     def save_returns(self, lookahead):
         self.return_indexes.append((self.last_index, self.stack.pop()))
         self.last_index += 2
+
+    def fake_value(self, lookahead):
+        self.stack.append('0')

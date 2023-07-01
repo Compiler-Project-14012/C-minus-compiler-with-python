@@ -34,3 +34,5 @@ while True:
 out = open('output.txt','w')
 for i in range(len(cg.generated_code.keys())):
     out.write(f'{i}\t{cg.generated_code[i]}\n')
+print(cg.stack)
+print(cg.symbol_table)

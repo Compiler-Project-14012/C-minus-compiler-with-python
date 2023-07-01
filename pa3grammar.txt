@@ -49,7 +49,7 @@ Iteration-stmt -> repeat #add_to_breaks #save_index Statement until  ( Expressio
 
 Return-stmt -> return Return-stmt-prime #save_returns #Checked
 
-Return-stmt-prime -> #push_index ;
+Return-stmt-prime -> #fake_value ;
 Return-stmt-prime -> Expression ;
 
 Expression -> Simple-expression-zegond
