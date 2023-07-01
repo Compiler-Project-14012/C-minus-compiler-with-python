@@ -67,8 +67,9 @@ class CodeGenerator:
         var_name = self.stack.pop()
         var_address = self.get_temp_address()
         self.symbol_table.append((self.last_id, var_name, self.current_scope, var_address, "int"))
-        self.last_id += 1
         self.params.append((self.last_id, var_name, self.current_scope, var_address, "int"))
+        self.last_id += 1
+
 
     def save_num(self, lookahead):
         self.stack.append('#' + str(lookahead[1]))
@@ -174,9 +175,10 @@ class CodeGenerator:
             args.reverse()
             func_args = func[1]
             for i in range(len(args)):
-                var = func_args[i]
+                var = func_args[i][3]
+                print(var)
                 value = args[i]
-                self.generated_code[self.last_index] = f'(ASSIGN, {value}, {var}, )'
+                self.generated_code[self.last_index] = f'(ASSIGN, {str(value)}, {str(var)}, )'
                 self.last_index += 1
                 self.stack.pop()
             self.stack.pop()
@@ -268,24 +270,27 @@ class CodeGenerator:
         self.return_indexes.append("|func_returns|")
 
     def fill_return_indexes(self, lookahead):
+        print(self.return_indexes)
         last_returns_index = len(self.return_indexes)
         for i in reversed(range(last_returns_index)):
             if self.return_indexes[i] == '|func_returns|':
                 last_returns_index = i
                 break
-        return_indexes = self.return_indexes[last_returns_index - 1:]
-        self.return_indexes = self.return_indexes[:last_returns_index]
+        return_indexes = self.return_indexes[last_returns_index:]
         return_indexes = return_indexes[1:]
+        self.return_indexes = self.return_indexes[:last_returns_index]
+
         return_value = self.stack.pop()
         return_to = self.stack.pop()
-
         for index in return_indexes:
             self.generated_code[index[0]] = f'(ASSIGN, {index[1]}, {return_value}, )'
             self.generated_code[index[0] + 1] = f'(JP, {return_to}, , )'
 
+        print(self.stack)
+        print(self.last_index)
         # for void functions
         if self.stack[-2] != "main":
-            self.generated_code[self.last_index] = f'JP, {return_to}, , )'
+            self.generated_code[self.last_index] = f'(JP, {return_to}, , )'
             self.last_index += 1
 
         jump_over_index = self.stack.pop()

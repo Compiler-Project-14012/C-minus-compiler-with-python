@@ -31,6 +31,6 @@ if os.stat("syntax_errors.txt").st_size == 0:
     e.write("There is no syntax error.")
     e.close()
 
+out = open('output.txt','w')
 for i in range(len(cg.generated_code.keys())):
-    print(f'{i}\t{cg.generated_code[i]}')
-print(len(cg.generated_code))
+    out.write(f'{i}\t{cg.generated_code[i]}\n')
