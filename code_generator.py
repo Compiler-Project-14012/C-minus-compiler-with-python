@@ -38,12 +38,12 @@ class CodeGenerator:
         self.symbol_table = []
 
     def call_routine(self, routine_name, look_ahead):
+        print(self.last_index)
         self.__getattribute__(routine_name)(look_ahead)
 
     def get_temp_address(self, number_of_words=1):
         number_of_words = int(number_of_words)
         start_address = self.last_address
-
         for i in range(number_of_words):
             self.generated_code[self.last_index] = f'(ASSIGN, #0, {self.last_address}, )'
             self.last_index += 1
