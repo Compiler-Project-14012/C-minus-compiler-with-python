@@ -38,6 +38,7 @@ class CodeGenerator:
         self.symbol_table = []
 
     def call_routine(self, routine_name, look_ahead):
+        print(self.stack)
         self.__getattribute__(routine_name)(look_ahead)
         print(self.last_index)
 
@@ -282,7 +283,7 @@ class CodeGenerator:
         return_to = self.stack.pop()
         for index in return_indexes:
             self.generated_code[index[0]] = f'(ASSIGN, {index[1]}, {return_value}, )'
-            self.generated_code[index[0] + 1] = f'(JP, {return_to}, , )'
+            self.generated_code[index[0] + 1] = f'(JP, @{return_to}, , )'
 
         # for void functions
         if self.stack[-2] != "main":
