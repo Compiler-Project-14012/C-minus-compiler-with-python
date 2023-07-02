@@ -23,6 +23,7 @@ class CodeGenerator:
     '''
 
     def __init__(self):
+        self.temps = []
         self.last_id = 0
         self.current_scope = 0
         self.last_address = 0
@@ -47,6 +48,7 @@ class CodeGenerator:
         start_address = self.last_address
         for i in range(number_of_words):
             self.generated_code[self.last_index] = f'(ASSIGN, #0, {self.last_address}, )'
+            self.temps.append(self.last_address)
             self.last_index += 1
             self.last_address += 4
         return str(start_address)
@@ -193,6 +195,13 @@ class CodeGenerator:
 
             for i in range(len(func_args)):
                 self.push_to_stack(func_args[i][3])
+            cnt = 0
+            for i in reversed(range(len(self.temps))):
+                if self.temps[i] == 'new_func':
+                    cnt = i
+                    break
+                self.push_to_stack(self.temps[i])
+
             for i in range(len(args)):
                 var = func_args[i][3]
                 value = args[i]
@@ -214,7 +223,11 @@ class CodeGenerator:
                 self.last_index += 1
                 self.generated_code[self.last_index] = f'(ASSIGN, @0, {func_args[i][3]}, )'
                 self.last_index += 1
-
+            for i in range(cnt, len(self.temps)):
+                self.generated_code[self.last_index] = '(ADD, 0, #4, 0)'
+                self.last_index += 1
+                self.generated_code[self.last_index] = f'(ASSIGN, @0, {self.temps[i]}, )'
+                self.last_index += 1
             self.generated_code[self.last_index] = '(ADD, 0, #4, 0)'
             self.last_index += 1
             self.generated_code[self.last_index] = f'(ASSIGN, @0, {func[3]}, )'
@@ -286,6 +299,7 @@ class CodeGenerator:
         return_to = self.get_temp_address()
         self.stack.append(self.last_index)
         self.last_index += 1
+        self.temps.append("new_func")
         jump_to = self.last_index
         return_value = self.get_temp_address()
         self.stack.append(return_to)
@@ -339,6 +353,10 @@ class CodeGenerator:
         else:
             self.generated_code[jump_over_index] = f'(ASSIGN, #0, {self.get_temp_address()}, )'
         print(self.symbol_table)
+        for i in reversed(range(len(self.temps))):
+            if self.temps[i] == 'new_func':
+                self.temps = self.temps[:i]
+                break
 
     def save_returns(self, lookahead):
         self.return_indexes.append((self.last_index, self.stack.pop()))
