@@ -153,6 +153,7 @@ class CodeGenerator:
         for i in reversed(range(len(self.break_states))):
             if self.break_states[i] == "new-break":
                 last_break = i
+                break
         print(last_break)
         breaks = self.break_states[last_break + 1:]
         print(breaks)
